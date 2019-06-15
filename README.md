@@ -5,6 +5,6 @@ Code samples and exercise solutions for [Programming Language Foundations in Agd
 To verify the code yourself, make sure that you've
 
 1. [installed](https://agda.readthedocs.io/en/latest/getting-started/installation.html) Agda and its Emacs mode, and
-1. added the standard library to your `libraries` file.
+1. [added the standard library](https://agda.readthedocs.io/en/latest/tools/package-system.html#installing-libraries) to your `libraries` file.
 
 Then open up any of the `.agda` files in Emacs and type `C-c C-l` to typecheck it.
