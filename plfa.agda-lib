@@ -1,0 +1,3 @@
+name: plfa-cruhland
+depend: standard-library
+include: .
