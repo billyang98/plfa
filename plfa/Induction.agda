@@ -175,7 +175,7 @@ _ =
 +-comm′ m (suc n) rewrite +-suc′ m n | +-comm′ m n = refl
 
 -- Exercises
-+-swap : ∀ (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
++-swap : (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
 +-swap m n p =
   begin
     m + (n + p)
@@ -187,15 +187,58 @@ _ =
     n + (m + p)
   ∎
 
-*-distrib-+ : ∀ (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
+*-distrib-+ : (m n p : ℕ) → (m + n) * p ≡ m * p + n * p
 *-distrib-+ zero n p = refl
 *-distrib-+ (suc m) n p rewrite *-distrib-+ m n p =
   sym (+-assoc p (m * p) (n * p))
 
-*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc : (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
 *-assoc zero n p = refl
 *-assoc (suc m) n p rewrite *-distrib-+ n (m * n) p | *-assoc m n p = refl
 
-n*0≡0 : ∀ (n : ℕ) → n * 0 ≡ 0
+n*0≡0 : (n : ℕ) → n * 0 ≡ 0
 n*0≡0 zero = refl
 n*0≡0 (suc n) = n*0≡0 n
+
+n+n*m≡n*[1+m] : (n m : ℕ) → n + n * m ≡ n * suc m
+n+n*m≡n*[1+m] zero m =
+  begin
+    0 + 0 * m
+  ≡⟨⟩
+    0
+  ≡⟨⟩
+    0 * suc m
+  ∎
+n+n*m≡n*[1+m] (suc n) m =
+  begin
+    suc n + suc n * m
+  ≡⟨⟩
+    suc (n + suc n * m)
+  ≡⟨⟩
+    suc (n + (m + n * m))
+  ≡⟨ cong suc (sym (+-assoc n m (n * m))) ⟩
+    suc (n + m + n * m)
+  ≡⟨ cong (λ x → suc (x + n * m)) (+-comm n m) ⟩
+    suc (m + n + n * m)
+  ≡⟨ cong suc (+-assoc m n (n * m)) ⟩
+    suc (m + (n + n * m))
+  ≡⟨ cong (λ x → suc (m + x)) (n+n*m≡n*[1+m] n m) ⟩
+    suc (m + n * suc m)
+  ≡⟨⟩
+    suc m + n * suc m
+  ≡⟨⟩
+    suc n * suc m
+  ∎
+
+*-comm : (m n : ℕ) → m * n ≡ n * m
+*-comm zero n = sym (n*0≡0 n)
+*-comm (suc m) n =
+  begin
+    suc m * n
+  ≡⟨⟩
+    n + m * n
+  ≡⟨ cong (_+_ n) (*-comm m n) ⟩
+    n + n * m
+  ≡⟨ n+n*m≡n*[1+m] n m ⟩
+    n * suc m
+  ∎
