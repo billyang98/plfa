@@ -4,6 +4,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import Function
 
 -- Exercise operators
 -- Logical AND and OR have
@@ -200,6 +201,18 @@ n*0≡0 : (n : ℕ) → n * 0 ≡ 0
 n*0≡0 zero = refl
 n*0≡0 (suc n) = n*0≡0 n
 
+n+[m+k]≡m+[n+k] : (n m k : ℕ) → n + (m + k) ≡ m + (n + k)
+n+[m+k]≡m+[n+k] n m k =
+  begin
+    n + (m + k)
+  ≡⟨ sym (+-assoc n m k) ⟩
+    (n + m) + k
+  ≡⟨ cong (flip _+_ k) (+-comm n m) ⟩
+    (m + n) + k
+  ≡⟨ +-assoc m n k ⟩
+    m + (n + k)
+  ∎
+
 n+n*m≡n*[1+m] : (n m : ℕ) → n + n * m ≡ n * suc m
 n+n*m≡n*[1+m] zero m =
   begin
@@ -216,13 +229,9 @@ n+n*m≡n*[1+m] (suc n) m =
     suc (n + suc n * m)
   ≡⟨⟩
     suc (n + (m + n * m))
-  ≡⟨ cong suc (sym (+-assoc n m (n * m))) ⟩
-    suc (n + m + n * m)
-  ≡⟨ cong (λ x → suc (x + n * m)) (+-comm n m) ⟩
-    suc (m + n + n * m)
-  ≡⟨ cong suc (+-assoc m n (n * m)) ⟩
+  ≡⟨ cong suc (n+[m+k]≡m+[n+k] n m (n * m)) ⟩
     suc (m + (n + n * m))
-  ≡⟨ cong (λ x → suc (m + x)) (n+n*m≡n*[1+m] n m) ⟩
+  ≡⟨ cong (suc ∘ _+_ m) (n+n*m≡n*[1+m] n m) ⟩
     suc (m + n * suc m)
   ≡⟨⟩
     suc m + n * suc m
