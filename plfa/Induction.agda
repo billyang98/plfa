@@ -4,6 +4,7 @@ import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
+open import Data.Nat.Base using (_^_)
 open import Function
 
 -- Exercise operators
@@ -250,4 +251,37 @@ n+n*m≡n*[1+m] (suc n) m =
     n + n * m
   ≡⟨ n+n*m≡n*[1+m] n m ⟩
     n * suc m
+  ∎
+
+0∸n≡0 : ∀ n → 0 ∸ n ≡ 0
+0∸n≡0 zero = refl
+0∸n≡0 (suc n) = refl
+
+∸-+-assoc : ∀ m n p → m ∸ n ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p =
+  begin
+    0 ∸ n ∸ p
+  ≡⟨ cong (flip _∸_ p) (0∸n≡0 n) ⟩
+    0 ∸ p
+  ≡⟨ 0∸n≡0 p ⟩
+    0
+  ≡⟨ sym (0∸n≡0 (n + p)) ⟩
+    0 ∸ (n + p)
+  ∎
+∸-+-assoc (suc m) zero p = refl
+∸-+-assoc (suc m) (suc n) p = ∸-+-assoc m n p
+
+^-distrib-+ : ∀ m n p → m ^ (n + p) ≡ m ^ n * m ^ p
+^-distrib-+ m zero p = sym (+-identityʳ (m ^ p))
+^-distrib-+ m (suc n) p =
+  begin
+    m ^ (suc n + p)
+  ≡⟨⟩
+    m * m ^ (n + p)
+  ≡⟨ cong (_*_ m) (^-distrib-+ m n p) ⟩
+    m * (m ^ n * m ^ p)
+  ≡⟨ sym (*-assoc m (m ^ n) (m ^ p)) ⟩
+    m * m ^ n * m ^ p
+  ≡⟨⟩
+    m ^ (suc n) * m ^ p
   ∎
