@@ -285,3 +285,34 @@ n+n*m≡n*[1+m] (suc n) m =
   ≡⟨⟩
     m ^ (suc n) * m ^ p
   ∎
+
+*-swap-middle : ∀ a b c d → (a * b) * (c * d) ≡ (a * c) * (b * d)
+*-swap-middle a b c d =
+  begin
+    (a * b) * (c * d)
+  ≡⟨ *-assoc a b (c * d) ⟩
+    a * (b * (c * d))
+  ≡⟨ cong (_*_ a) (sym (*-assoc b c d)) ⟩
+    a * ((b * c) * d)
+  ≡⟨ cong (_*_ a ∘ flip _*_ d) (*-comm b c) ⟩
+    a * ((c * b) * d)
+  ≡⟨ cong (_*_ a) (*-assoc c b d) ⟩
+    a * (c * (b * d))
+  ≡⟨ sym (*-assoc a c (b * d)) ⟩
+    (a * c) * (b * d)
+  ∎
+
+^-distrib-* : ∀ m n p → (m * n) ^ p ≡ (m ^ p) * (n ^ p)
+^-distrib-* m n zero = refl
+^-distrib-* m n (suc p) =
+  begin
+    (m * n) ^ suc p
+  ≡⟨⟩
+    (m * n) * (m * n) ^ p
+  ≡⟨ cong (_*_ (m * n)) (^-distrib-* m n p) ⟩
+    (m * n) * ((m ^ p) * (n ^ p))
+  ≡⟨ *-swap-middle m n (m ^ p) (n ^ p) ⟩
+    m * (m ^ p) * (n * (n ^ p))
+  ≡⟨⟩
+    m ^ suc p * n ^ suc p
+  ∎
