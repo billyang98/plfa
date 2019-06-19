@@ -316,3 +316,24 @@ n+n*m≡n*[1+m] (suc n) m =
   ≡⟨⟩
     m ^ suc p * n ^ suc p
   ∎
+
+1^n : ∀ n → 1 ^ n ≡ 1
+1^n zero = refl
+1^n (suc n) rewrite +-identityʳ (1 ^ n) = 1^n n
+
+^-assoc-* : ∀ m n p → m ^ (n * p) ≡ (m ^ n) ^ p
+^-assoc-* m zero p = sym (1^n p)
+^-assoc-* m (suc n) p =
+  begin
+    m ^ (suc n * p)
+  ≡⟨⟩
+    m ^ (p + n * p)
+  ≡⟨ ^-distrib-+ m p (n * p) ⟩
+    (m ^ p) * (m ^ (n * p))
+  ≡⟨ cong (_*_ (m ^ p)) (^-assoc-* m n p) ⟩
+    (m ^ p) * ((m ^ n) ^ p)
+  ≡⟨ sym (^-distrib-* m (m ^ n) p) ⟩
+    (m * (m ^ n)) ^ p
+  ≡⟨⟩
+    (m ^ suc n) ^ p
+  ∎
