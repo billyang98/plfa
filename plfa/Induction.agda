@@ -337,3 +337,84 @@ n+n*m≡n*[1+m] (suc n) m =
   ≡⟨⟩
     (m ^ suc n) ^ p
   ∎
+
+data Bin : Set where
+  nil : Bin
+  x0_ : Bin → Bin
+  x1_ : Bin → Bin
+
+inc : Bin → Bin
+inc nil = x1 nil
+inc (x0 x) = x1 x
+inc (x1 x) = x0 (inc x)
+
+to : ℕ → Bin
+to zero = x0 nil
+to (suc n) = inc (to n)
+
+from : Bin → ℕ
+from nil = zero
+from (x0 x) = 2 * from x
+from (x1 x) = suc (2 * from x)
+
+2*suc : ∀ n → 2 * suc n ≡ suc (suc (2 * n))
+2*suc n =
+  begin
+    2 * suc n
+  ≡⟨⟩
+    suc (suc zero) * suc n
+  ≡⟨⟩
+    suc n + suc zero * suc n
+  ≡⟨⟩
+    suc n + (suc n + zero * suc n)
+  ≡⟨⟩
+    suc n + (suc n + zero)
+  ≡⟨⟩
+    suc (n + (suc n + zero))
+  ≡⟨⟩
+    suc (n + suc (n + zero))
+  ≡⟨ cong suc (+-suc n (n + zero)) ⟩
+    suc (suc (n + (n + zero)))
+  ≡⟨⟩
+    suc (suc (2 * n))
+  ∎
+
+inc-suc : ∀ x → from (inc x) ≡ suc (from x)
+inc-suc nil =
+  begin
+    from (inc nil)
+  ≡⟨⟩
+    from (x1 nil)
+  ≡⟨⟩
+    suc (2 * from nil)
+  ≡⟨⟩
+    suc (2 * 0)
+  ≡⟨⟩
+    suc zero
+  ≡⟨⟩
+    suc (from nil)
+  ∎
+inc-suc (x0 x) =
+  begin
+    from (inc (x0 x))
+  ≡⟨⟩
+    from (x1 x)
+  ≡⟨⟩
+    suc (2 * from x)
+  ≡⟨⟩
+    suc (from (x0 x))
+  ∎
+inc-suc (x1 x) =
+  begin
+    from (inc (x1 x))
+  ≡⟨⟩
+    from (x0 (inc x))
+  ≡⟨⟩
+    2 * from (inc x)
+  ≡⟨ cong (_*_ 2) (inc-suc x) ⟩
+    2 * suc (from x)
+  ≡⟨ 2*suc (from x) ⟩
+    suc (suc (2 * from x))
+  ≡⟨⟩
+    suc (from (x1 x))
+  ∎
