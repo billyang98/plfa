@@ -1,11 +1,12 @@
 module plfa.Induction where
 
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; sym)
+open Eq using (_≡_; refl; cong; sym; _≢_)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; _≡⟨_⟩_; _∎)
 open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
 open import Data.Nat.Base using (_^_)
 open import Function
+open import Data.Product using (Σ; _,_)
 
 -- Exercise operators
 -- Logical AND and OR have
@@ -417,4 +418,31 @@ inc-suc (x1 x) =
     suc (suc (2 * from x))
   ≡⟨⟩
     suc (from (x1 x))
+  ∎
+
+to-from-id-fail : Σ Bin (λ x → to (from x) ≢ x)
+to-from-id-fail = (x0 x0 x0 nil) , λ ()
+
+from-to-id : ∀ n → from (to n) ≡ n
+from-to-id zero =
+  begin
+    from (to 0)
+  ≡⟨⟩
+    from (x0 nil)
+  ≡⟨⟩
+    2 * from nil
+  ≡⟨⟩
+    2 * 0
+  ≡⟨⟩
+    0
+  ∎
+from-to-id (suc n) =
+  begin
+    from (to (suc n))
+  ≡⟨⟩
+    from (inc (to n))
+  ≡⟨ inc-suc (to n) ⟩
+    suc (from (to n))
+  ≡⟨ cong suc (from-to-id n) ⟩
+    suc n
   ∎
