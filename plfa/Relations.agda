@@ -100,3 +100,57 @@ data Total (m n : ℕ) : Set where
 
 *-mono-≤ : ∀ m n p q → m ≤ n → p ≤ q → m * p ≤ n * q
 *-mono-≤ m n p q m≤n p≤q = ≤-trans (*-monoˡ-≤ m n p m≤n) (*-monoʳ-≤ n p q p≤q)
+
+-- Strict inequality
+infix 4 _<_
+
+data _<_ : ℕ → ℕ → Set where
+  z<s : ∀ {n} → zero < suc n
+  s<s : ∀ {m n} → m < n → suc m < suc n
+
+-- Exercise <-trans
+<-trans : ∀ {m n p} → m < n → n < p → m < p
+<-trans z<s (s<s n<p) = z<s
+<-trans (s<s m<n) (s<s n<p) = s<s (<-trans m<n n<p)
+
+-- Exercise trichotomy
+data Trichotomous (n m : ℕ) : Set where
+  less : n < m → Trichotomous n m
+  same : n ≡ m → Trichotomous n m
+  more : m < n → Trichotomous n m
+
+<-trichotomous : ∀ n m → Trichotomous n m
+<-trichotomous zero zero = same refl
+<-trichotomous zero (suc m) = less z<s
+<-trichotomous (suc n) zero = more z<s
+<-trichotomous (suc n) (suc m) with <-trichotomous n m
+... | less n<m = less (s<s n<m)
+... | same n≡m = same (cong suc n≡m)
+... | more m<n = more (s<s m<n)
+
+-- Exercise +-mono-<
++-monoʳ-< : ∀ n p q → p < q → n + p < n + q
++-monoʳ-< zero p q p<q = p<q
++-monoʳ-< (suc n) p q p<q = s<s (+-monoʳ-< n p q p<q)
+
++-monoˡ-< : ∀ m n p → m < n → m + p < n + p
++-monoˡ-< m n p m<n rewrite +-comm m p | +-comm n p = +-monoʳ-< p m n m<n
+
++-mono-< : ∀ m n p q → m < n → p < q → m + p < n + q
++-mono-< m n p q m<n p<q = <-trans (+-monoˡ-< m n p m<n) (+-monoʳ-< n p q p<q)
+
+-- Exercise ≤-iff-<
+≤→< : ∀ {m n} → suc m ≤ n → m < n
+≤→< {zero} {suc n} sm≤n = z<s
+≤→< {suc m} {suc n} (s≤s sm≤n) = s<s (≤→< sm≤n)
+
+<→≤ : ∀ {m n} → m < n → suc m ≤ n
+<→≤ {zero} {suc n} z<s = s≤s z≤n
+<→≤ {suc m} {suc n} (s<s m<n) = s≤s (<→≤ m<n)
+
+-- Exercise <-trans-revisited
+n≤sn : ∀ {n} → n ≤ suc n
+n≤sn {n} = +-monoˡ-≤ 0 1 n z≤n
+
+<-trans′ : ∀ {m n p} → m < n → n < p → m < p
+<-trans′ m<n n<p = ≤→< (≤-trans (<→≤ m<n) (≤-trans n≤sn (<→≤ n<p)))
