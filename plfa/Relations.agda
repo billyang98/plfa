@@ -154,3 +154,72 @@ n≤sn {n} = +-monoˡ-≤ 0 1 n z≤n
 
 <-trans′ : ∀ {m n p} → m < n → n < p → m < p
 <-trans′ m<n n<p = ≤→< (≤-trans (<→≤ m<n) (≤-trans n≤sn (<→≤ n<p)))
+
+-- Even and odd
+data even : ℕ → Set
+data odd : ℕ → Set
+
+data even where
+  zero : even zero
+  suc : ∀ {n} → odd n → even (suc n)
+
+data odd where
+  suc : ∀ {n} → even n → odd (suc n)
+
+e+e≡e : ∀ {m n} → even m → even n → even (m + n)
+o+e≡o : ∀ {m n} → odd m → even n → odd (m + n)
+
+e+e≡e zero en = en
+e+e≡e (suc om) en = suc (o+e≡o om en)
+
+o+e≡o (suc em) en = suc (e+e≡e em en)
+
+-- Exercise o+o≡e
+o+o≡e : ∀ {m n} → odd m → odd n → even (m + n)
+o+o≡e .{suc m} {n} (suc {m} em) on rewrite +-comm m n = suc (o+e≡o on em)
+
+-- Exercise Bin-predicates
+data Bin : Set where
+  nil : Bin
+  x0_ : Bin → Bin
+  x1_ : Bin → Bin
+
+data One : Bin → Set where
+  isOne : One (x1 nil)
+  zeroAfter : ∀ {b} → One b → One (x0 b)
+  oneAfter : ∀ {b} → One b → One (x1 b)
+
+data Can : Bin → Set where
+  isZero : Can (x0 nil)
+  leadingOne : ∀ {b} → One b → Can b
+
+inc : Bin → Bin
+inc nil = x1 nil
+inc (x0 x) = x1 x
+inc (x1 x) = x0 (inc x)
+
+inc-preserves-One : ∀ {x} → One x → One (inc x)
+inc-preserves-One isOne = zeroAfter isOne
+inc-preserves-One (zeroAfter one) = oneAfter one
+inc-preserves-One (oneAfter one) = zeroAfter (inc-preserves-One one)
+
+inc-preserves-Can : ∀ {x} → Can x → Can (inc x)
+inc-preserves-Can isZero = leadingOne isOne
+inc-preserves-Can (leadingOne one) = leadingOne (inc-preserves-One one)
+
+to : ℕ → Bin
+to zero = x0 nil
+to (suc n) = inc (to n)
+
+to-Can : ∀ n → Can (to n)
+to-Can zero = isZero
+to-Can (suc n) = inc-preserves-Can (to-Can n)
+
+from : Bin → ℕ
+from nil = zero
+from (x0 x) = 2 * from x
+from (x1 x) = suc (2 * from x)
+
+from-to-Can : ∀ {x} → Can x → to (from x) ≡ x
+from-to-Can isZero = refl
+from-to-Can (leadingOne one) = {!!}
