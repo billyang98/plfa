@@ -74,3 +74,131 @@ data Tri : Set where
     ; from∘to = λ { record { to = A→B ; from = B→A } → refl }
     ; to∘from = λ { ⟨ A→B , B→A ⟩ → refl }
     }
+
+-- Truth is unit
+data ⊤ : Set where
+  tt : ⊤
+
+η-⊤ : (w : ⊤) → tt ≡ w
+η-⊤ tt = refl
+
+⊤-count : ⊤ → ℕ
+⊤-count tt = 1
+
+⊤-identityˡ : {A : Set} → ⊤ × A ≃ A
+⊤-identityˡ =
+  record
+    { to = λ { ⟨ t , x ⟩ → x }
+    ; from = λ { x → ⟨ tt , x ⟩ }
+    ; from∘to = λ { ⟨ tt , x ⟩ → refl }
+    ; to∘from = λ { x → refl }
+    }
+
+⊤-identityʳ : {A : Set} → (A × ⊤) ≃ A
+⊤-identityʳ {A} =
+  ≃-begin
+    (A × ⊤)
+  ≃⟨ ×-comm ⟩
+    (⊤ × A)
+  ≃⟨ ⊤-identityˡ ⟩
+    A
+  ≃-∎
+
+-- Disjunction is sum
+data _⊎_ (A B : Set) : Set where
+  inj₁ : A → A ⊎ B
+  inj₂ : B → A ⊎ B
+
+case-⊎ : {A B C : Set} → (A → C) → (B → C) → A ⊎ B → C
+case-⊎ f g (inj₁ x) = f x
+case-⊎ f g (inj₂ y) = g y
+
+η-⊎ : {A B : Set} (w : A ⊎ B) → case-⊎ inj₁ inj₂ w ≡ w
+η-⊎ (inj₁ x) = refl
+η-⊎ (inj₂ y) = refl
+
+uniq-⊎ :
+  {A B C : Set} (h : A ⊎ B → C) (w : A ⊎ B) →
+  case-⊎ (h ∘ inj₁) (h ∘ inj₂) w ≡ h w
+uniq-⊎ h (inj₁ x) = refl
+uniq-⊎ h (inj₂ y) = refl
+
+infix 1 _⊎_
+
+⊎-count : Bool ⊎ Tri → ℕ
+⊎-count (inj₁ true) = 1
+⊎-count (inj₁ false) = 2
+⊎-count (inj₂ aa) = 3
+⊎-count (inj₂ bb) = 4
+⊎-count (inj₂ cc) = 5
+
+-- Exercise
+⊎-comm : {A B : Set} → A ⊎ B ≃ B ⊎ A
+⊎-comm =
+  record
+    { to = λ { (inj₁ x) → inj₂ x ; (inj₂ y) → inj₁ y }
+    ; from = λ { (inj₁ y) → inj₂ y ; (inj₂ x) → inj₁ x }
+    ; from∘to = λ { (inj₁ x) → refl ; (inj₂ y) → refl }
+    ; to∘from = λ { (inj₁ y) → refl ; (inj₂ x) → refl }
+    }
+
+-- Exercise
+⊎-assoc : {A B C : Set} → (A ⊎ B) ⊎ C ≃ A ⊎ (B ⊎ C)
+⊎-assoc =
+  record
+    { to = λ
+      { (inj₁ (inj₁ x)) → inj₁ x
+      ; (inj₁ (inj₂ y)) → inj₂ (inj₁ y)
+      ; (inj₂ z) → inj₂ (inj₂ z)
+      }
+    ; from = λ
+      { (inj₁ x) → inj₁ (inj₁ x)
+      ; (inj₂ (inj₁ y)) → inj₁ (inj₂ y)
+      ; (inj₂ (inj₂ z)) → inj₂ z
+      }
+    ; from∘to = λ
+      { (inj₁ (inj₁ x)) → refl
+      ; (inj₁ (inj₂ x)) → refl
+      ; (inj₂ x) → refl
+      }
+    ; to∘from = λ
+      { (inj₁ x) → refl
+      ; (inj₂ (inj₁ x)) → refl
+      ; (inj₂ (inj₂ x)) → refl
+      }
+    }
+
+-- False is empty
+data ⊥ : Set where
+
+⊥-elim : {A : Set} → ⊥ → A
+⊥-elim ()
+
+uniq-⊥ : {C : Set} (h : ⊥ → C) (w : ⊥) → ⊥-elim w ≡ h w
+uniq-⊥ h ()
+
+⊥-count : ⊥ → ℕ
+⊥-count ()
+
+-- Exercise
+⊥-identityˡ : {A : Set} → ⊥ ⊎ A ≃ A
+⊥-identityˡ =
+  record
+    { to = λ { (inj₂ x) → x }
+    ; from = λ { x → inj₂ x }
+    ; from∘to = λ { (inj₂ x) → refl }
+    ; to∘from = λ x → refl
+    }
+
+-- Exercise
+⊥-identityʳ : {A : Set} → A ⊎ ⊥ ≃ A
+⊥-identityʳ {A} =
+  ≃-begin
+    (A ⊎ ⊥)
+  ≃⟨ ⊎-comm ⟩
+    (⊥ ⊎ A)
+  ≃⟨ ⊥-identityˡ ⟩
+    A
+  ≃-∎
+
+-- Implication is function
