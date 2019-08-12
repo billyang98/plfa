@@ -202,3 +202,49 @@ uniq-⊥ h ()
   ≃-∎
 
 -- Implication is function
+→-elim : {A B : Set} → (A → B) → A → B
+→-elim L M = L M
+
+η-→ : {A B : Set} (f : A → B) → (λ (x : A) → f x) ≡ f
+η-→ f = refl
+
+→-count : (Bool → Tri) → ℕ
+→-count f with f true | f false
+→-count f | aa | aa = 1
+→-count f | aa | bb = 2
+→-count f | aa | cc = 3
+→-count f | bb | aa = 4
+→-count f | bb | bb = 5
+→-count f | bb | cc = 6
+→-count f | cc | aa = 7
+→-count f | cc | bb = 8
+→-count f | cc | cc = 9
+
+currying : {A B C : Set} → (A → B → C) ≃ (A × B → C)
+currying =
+  record
+    { to = λ { f ⟨ x , y ⟩ → f x y }
+    ; from = λ { g x y → g ⟨ x , y ⟩ }
+    ; from∘to = λ f → refl
+    ; to∘from = λ g → extensionality λ { ⟨ x , y ⟩ → refl }
+    }
+
+→-distrib-⊎ : {A B C : Set} → (A ⊎ B → C) ≃ ((A → C) × (B → C))
+→-distrib-⊎ =
+  record
+    { to = λ { f → ⟨ f ∘ inj₁ , f ∘ inj₂ ⟩ }
+    ; from = λ { ⟨ g , h ⟩ (inj₁ x) → g x ; ⟨ g , h ⟩ (inj₂ y) → h y }
+    ; from∘to = λ { f → extensionality λ { (inj₁ x) → refl ; (inj₂ y) → refl } }
+    ; to∘from = λ { ⟨ g , h ⟩ → refl }
+    }
+
+→-distrib-× : {A B C : Set} → (A → B × C) ≃ (A → B) × (A → C)
+→-distrib-× =
+  record
+    { to = λ { f → ⟨ proj₁ ∘ f , proj₂ ∘ f ⟩ }
+    ; from = λ { ⟨ g , h ⟩ x → ⟨ g x , h x ⟩ }
+    ; from∘to = λ { f → extensionality (η-× ∘ f) }
+    ; to∘from = λ { ⟨ g , h ⟩ → refl }
+    }
+
+-- Distribution
