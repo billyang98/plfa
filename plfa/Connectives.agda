@@ -248,3 +248,56 @@ currying =
     }
 
 -- Distribution
+×-distrib-⊎ : {A B C : Set} → (A ⊎ B) × C ≃ (A × C) ⊎ (B × C)
+×-distrib-⊎ =
+  record
+    { to = λ
+      { ⟨ inj₁ x , z ⟩ → inj₁ ⟨ x , z ⟩
+      ; ⟨ inj₂ y , z ⟩ → inj₂ ⟨ y , z ⟩
+      }
+    ; from = λ
+      { (inj₁ ⟨ x , z ⟩) → ⟨ inj₁ x , z ⟩
+      ; (inj₂ ⟨ y , z ⟩) → ⟨ inj₂ y , z ⟩
+      }
+    ; from∘to = λ { ⟨ inj₁ x , z ⟩ → refl ; ⟨ inj₂ y , z ⟩ → refl }
+    ; to∘from = λ { (inj₁ ⟨ x , z ⟩) → refl ; (inj₂ ⟨ y , z ⟩) → refl }
+    }
+
+⊎-distrib-× : {A B C : Set} → (A × B) ⊎ C ≲ (A ⊎ C) × (B ⊎ C)
+⊎-distrib-× =
+  record
+    { to = λ
+      { (inj₁ ⟨ x , y ⟩) → ⟨ inj₁ x , inj₁ y ⟩
+      ; (inj₂ z) → ⟨ inj₂ z , inj₂ z ⟩
+      }
+    ; from = λ
+      { ⟨ inj₁ x , inj₁ y ⟩ → inj₁ ⟨ x , y ⟩
+      ; ⟨ inj₁ x , inj₂ z ⟩ → inj₂ z
+      ; ⟨ inj₂ z , _ ⟩ → inj₂ z
+      }
+    ; from∘to = λ { (inj₁ ⟨ x , y ⟩) → refl ; (inj₂ z) → refl }
+    }
+
+-- Exercise
+⊎-weak-× : {A B C : Set} → (A ⊎ B) × C → A ⊎ (B × C)
+⊎-weak-× ⟨ inj₁ x , z ⟩ = inj₁ x
+⊎-weak-× ⟨ inj₂ y , z ⟩ = inj₂ ⟨ y , z ⟩
+
+-- The corresponding distributive law is ×-distrib-⊎.
+-- This relates to the weak version in that it doesn't throw away the value
+-- for C that gets paired with A. This allows it to be an isomorphism.
+
+-- Exercise
+⊎×-implies-×⊎ : {A B C D : Set} → (A × B) ⊎ (C × D) → (A ⊎ C) × (B ⊎ D)
+⊎×-implies-×⊎ (inj₁ ⟨ x , y ⟩) = ⟨ inj₁ x , inj₁ y ⟩
+⊎×-implies-×⊎ (inj₂ ⟨ z , w ⟩) = ⟨ inj₂ z , inj₂ w ⟩
+
+-- ×⊎-implies-⊎x : {A B C D : Set} → (A ⊎ C) × (B ⊎ D) → (A × B) ⊎ (C × D)
+-- ×⊎-implies-⊎x ⟨ inj₁ x , inj₁ y ⟩ = inj₁ ⟨ x , y ⟩
+-- ×⊎-implies-⊎x ⟨ inj₁ x , inj₂ w ⟩ = {!!}
+-- ×⊎-implies-⊎x ⟨ inj₂ z , inj₁ y ⟩ = {!!}
+-- ×⊎-implies-⊎x ⟨ inj₂ z , inj₂ w ⟩ = inj₂ ⟨ z , w ⟩
+
+-- The converse is impossible in the above incomplete cases,
+-- where we have one side each of (A × B) and (C × D), but
+-- both sides of one of them are needed.
