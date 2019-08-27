@@ -6,6 +6,7 @@ open import Data.Empty using (⊥; ⊥-elim)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Product using (_×_; _,_)
 open import plfa.Isomorphism using (_≃_; extensionality)
+open import plfa.Connectives using (η-→)
 
 -- Negation
 ¬_ : Set → Set
@@ -83,5 +84,24 @@ trichotomy (suc m) (suc n) | inj₂ (inj₂ (¬m<n , ¬m≡n , m>n)) =
       >-prf = s≤s m>n
 
 -- Exercise
+×-≡ :
+  {A B : Set} {x₁ x₂ : A} {y₁ y₂ : B} →
+  x₁ ≡ x₂ →
+  y₁ ≡ y₂ →
+  (x₁ , y₁) ≡ (x₂ , y₂)
+×-≡ refl refl = refl
+
 ⊎-dual-× : {A B : Set} → ¬ (A ⊎ B) ≃ (¬ A) × (¬ B)
-⊎-dual-× = {!!}
+⊎-dual-× =
+  record
+    { to = λ ¬[x+y] → (λ x → ¬[x+y] (inj₁ x)) , (λ y → ¬[x+y] (inj₂ y))
+    ; from = λ { (¬x , ¬y) (inj₁ x) → ¬x x ; (¬x , ¬y) (inj₂ y) → ¬y y }
+    ; from∘to = λ ¬[x+y] → extensionality λ { (inj₁ x) → refl ; (inj₂ y) → refl }
+    ; to∘from = λ { (¬x , ¬y) → ×-≡ (η-→ ¬x) (η-→ ¬y) }
+    }
+
+×-not-quite-dual-⊎ : {A B : Set} → (¬ A) ⊎ (¬ B) → ¬ (A × B)
+×-not-quite-dual-⊎ (inj₁ ¬x) (x , y) = ¬x x
+×-not-quite-dual-⊎ (inj₂ ¬y) (x , y) = ¬y y
+
+-- Excluded middle is irrefutable
