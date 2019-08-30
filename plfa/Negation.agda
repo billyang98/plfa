@@ -3,8 +3,9 @@ module plfa.Negation where
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
 open import Data.Nat using (ℕ; zero; suc; _<_; z≤n; s≤s)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Sum using (_⊎_; inj₁; inj₂)
+open import Data.Sum using (_⊎_; inj₁; inj₂; swap)
 open import Data.Product using (_×_; _,_)
+open import Function using (_∘_)
 open import plfa.Isomorphism using (_≃_; extensionality)
 open import plfa.Connectives using (η-→)
 
@@ -105,3 +106,60 @@ trichotomy (suc m) (suc n) | inj₂ (inj₂ (¬m<n , ¬m≡n , m>n)) =
 ×-not-quite-dual-⊎ (inj₂ ¬y) (x , y) = ¬y y
 
 -- Excluded middle is irrefutable
+postulate
+  em : {A : Set} → A ⊎ ¬ A
+
+em-irrefutable : {A : Set} → ¬ ¬ (A ⊎ ¬ A)
+em-irrefutable = λ k → k (inj₂ (λ x → k (inj₁ x)))
+
+-- Exercise: Classical
+em→dne : {A : Set} → A ⊎ ¬ A → ¬ ¬ A → A
+em→dne (inj₁ x) ¬¬x = x
+em→dne (inj₂ ¬x) ¬¬x = ⊥-elim (¬¬x ¬x)
+
+em→peirce : {A B : Set} → A ⊎ ¬ A → ((A → B) → A) → A
+em→peirce (inj₁ x) k = x
+em→peirce (inj₂ ¬x) k = k λ x → ⊥-elim (¬x x)
+
+em→¬⊎ : {A B : Set} → A ⊎ ¬ A → (A → B) → ¬ A ⊎ B
+em→¬⊎ (inj₁ x) f = inj₂ (f x)
+em→¬⊎ (inj₂ ¬x) f = inj₁ ¬x
+
+em→deMorgan : ({A : Set} → A ⊎ ¬ A) → {A B : Set} → ¬ (¬ A × ¬ B) → A ⊎ B
+em→deMorgan lem {A} {B} d with lem {A} | lem {B}
+em→deMorgan lem {A} {B} d | inj₁ x | y⊎¬y = inj₁ x
+em→deMorgan lem {A} {B} d | inj₂ ¬x | inj₁ y = inj₂ y
+em→deMorgan lem {A} {B} d | inj₂ ¬x | inj₂ ¬y = ⊥-elim (d (¬x , ¬y))
+
+dne→em : ({A : Set} → ¬ ¬ A → A) → {A : Set} → A ⊎ ¬ A
+dne→em dne = dne em-irrefutable
+
+dne→peirce : {A B : Set} → (¬ ¬ A → A) → ((A → B) → A) → A
+dne→peirce dne k = dne λ ¬x → ¬x (k λ x → ⊥-elim (¬x x))
+
+peirce→em : ({A B : Set} → (((A → B) → A) → A)) → {A : Set} → A ⊎ ¬ A
+peirce→em p = p λ ¬em → ⊥-elim (em-irrefutable ¬em)
+
+¬⊎→em : ({A B : Set} → ((A → B) → ¬ A ⊎ B)) → {A : Set} → A ⊎ ¬ A
+¬⊎→em ¬⊎ = swap (¬⊎ λ x → x)
+
+deMorgan→em : ({A B : Set} → ¬ (¬ A × ¬ B) → A ⊎ B) → {A : Set} → A ⊎ ¬ A
+deMorgan→em dem = dem λ { (¬x , ¬¬x) → ¬¬x ¬x }
+
+peirce→deMorgan :
+  ({A B : Set} → (((A → B) → A) → A)) →
+  {A B : Set} → ¬ (¬ A × ¬ B) → A ⊎ B
+peirce→deMorgan = em→deMorgan ∘ peirce→em
+
+-- Exercise: Stable
+Stable : Set → Set
+Stable A = ¬ ¬ A → A
+
+¬-Stable : {A : Set} → Stable (¬ A)
+¬-Stable = ¬¬¬-elim
+
+×-Stable : {A B : Set} → Stable A → Stable B → Stable (A × B)
+×-Stable ¬¬x→x ¬¬y→y ¬¬xy = (xPrf , yPrf)
+  where
+    xPrf = ¬¬x→x (λ ¬x → ¬¬xy λ { (x , y) → ¬x x })
+    yPrf = ¬¬y→y (λ ¬y → ¬¬xy λ { (x , y) → ¬y y })
