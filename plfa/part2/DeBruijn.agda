@@ -95,14 +95,45 @@ lookup : ∀ {n} → Context n → Fin n → Type
 lookup {suc n} (Γ , A) FZ = A
 lookup {suc n} (Γ , A) (FS i) = lookup Γ i
 
-count : ∀ {n} → {Γ : Context n} → (i : Fin n) → Γ ∋ lookup Γ i
+count : ∀ {n} {Γ : Context n} (i : Fin n) → Γ ∋ lookup Γ i
 count {suc n} {Γ , _} FZ = Z
 count {suc n} {Γ , _} (FS i) = S (count i)
 
-#_ : ∀ {n} → {Γ : Context n} → (i : Fin n) → Γ ⊢ lookup Γ i
+#_ : ∀ {n} {Γ : Context n} (i : Fin n) → Γ ⊢ lookup Γ i
 # i = ` count i
 
 _ : ∅ ⊢ (`ℕ ⇒ `ℕ) ⇒ `ℕ ⇒ `ℕ
 _ = ƛ ƛ (# 1 · (# 1 · # 0))
 
 -- Test examples
+two : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ
+two = `suc `suc `zero
+
+plus : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ ⇒ `ℕ ⇒ `ℕ
+plus = μ ƛ ƛ (case (# 1) (# 0) (`suc (# 3 · # 0 · # 1)))
+
+2+2 : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ
+2+2 = plus · two · two
+
+Ch : Type → Type
+Ch A = (A ⇒ A) ⇒ A ⇒ A
+
+twoᶜ : ∀ {n A} {Γ : Context n} → Γ ⊢ Ch A
+twoᶜ = ƛ ƛ (# 1 · (# 1 · # 0))
+
+plusᶜ : ∀ {n A} {Γ : Context n} → Γ ⊢ Ch A ⇒ Ch A ⇒ Ch A
+plusᶜ = ƛ ƛ ƛ ƛ (# 3 · # 1 · (# 2 · # 1 · # 0))
+
+sucᶜ : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ ⇒ `ℕ
+sucᶜ = ƛ `suc (# 0)
+
+2+2ᶜ : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ
+2+2ᶜ = plusᶜ · twoᶜ · twoᶜ · sucᶜ · `zero
+
+-- Exercise: mul
+-- Z * n = Z
+-- (S m) * n = + n (* m n)
+mul : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ ⇒ `ℕ ⇒ `ℕ
+mul = μ ƛ ƛ (case (# 1) `zero (plus · # 1 · (# 3 · # 0 · # 1)))
+
+-- Renaming
