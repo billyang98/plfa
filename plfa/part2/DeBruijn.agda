@@ -1,11 +1,23 @@
 module plfa.part2.DeBruijn where
 
 -- Imports
+open import Agda.Builtin.FromNat using (Number)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Data.Empty using (⊥; ⊥-elim)
-open import Data.Nat using (ℕ; zero; suc)
+open import Data.Fin using (Fin) renaming (zero to FZ; suc to FS)
+import Data.Fin.Literals as FinLit
+open import Data.Nat using (ℕ; zero; suc; _<_; _≤_; z≤n; s≤s)
+import Data.Nat.Literals as NatLit
+open import Data.Unit
 open import Relation.Nullary using (¬_)
+
+instance
+  NumNat : Number ℕ
+  NumNat = NatLit.number
+
+  NumFin : ∀ {n} → Number (Fin n)
+  NumFin {n} = FinLit.number n
 
 -- Introduction
 -- A second example
@@ -32,17 +44,17 @@ data Type : Set where
   `ℕ : Type
 
 -- Contexts
-data Context : Set where
-  ∅ : Context
-  _,_ : Context → Type → Context
+data Context : ℕ → Set where
+  ∅ : Context 0
+  _,_ : ∀ {n} → Context n → Type → Context (suc n)
 
-_ : Context
+_ : Context 2
 _ = ∅ , `ℕ ⇒ `ℕ , `ℕ
 
 -- Variables and the lookup judgment
-data _∋_ : Context → Type → Set where
-  Z : ∀ {Γ A} → Γ , A ∋ A
-  S_ : ∀ {Γ A B} → Γ ∋ A → Γ , B ∋ A
+data _∋_ : ∀ {n} → Context n → Type → Set where
+  Z : ∀ {n A} → {Γ : Context n} → Γ , A ∋ A
+  S_ : ∀ {n A B} → {Γ : Context n} → Γ ∋ A → Γ , B ∋ A
 
 _ : ∅ , `ℕ ⇒ `ℕ , `ℕ ∋ `ℕ
 _ = Z
@@ -51,7 +63,7 @@ _ : ∅ , `ℕ ⇒ `ℕ , `ℕ ∋ `ℕ ⇒ `ℕ
 _ = S Z
 
 -- Terms and the typing judgment
-data _⊢_ (Γ : Context) : Type → Set where
+data _⊢_ {n} (Γ : Context n) : Type → Set where
   `_ : ∀ {A} → Γ ∋ A → Γ ⊢ A
   ƛ_ : ∀ {A B} → Γ , A ⊢ B → Γ ⊢ A ⇒ B
   _·_ : ∀ {A B} → Γ ⊢ A ⇒ B → Γ ⊢ A → Γ ⊢ B
@@ -79,20 +91,16 @@ _ : ∅ ⊢ (`ℕ ⇒ `ℕ) ⇒ `ℕ ⇒ `ℕ
 _ = ƛ ƛ (` S Z · (` S Z · ` Z))
 
 -- Abbreviating de Bruijn indices
-lookup : Context → ℕ → Type
-lookup (Γ , A) zero = A
-lookup (Γ , A) (suc n) = lookup Γ n
-lookup ∅ _ = ⊥-elim impossible
-  where postulate impossible : ⊥
+lookup : ∀ {n} → Context n → Fin n → Type
+lookup {suc n} (Γ , A) FZ = A
+lookup {suc n} (Γ , A) (FS i) = lookup Γ i
 
-count : ∀ {Γ} → (n : ℕ) → Γ ∋ lookup Γ n
-count {Γ , _} zero = Z
-count {Γ , _} (suc n) = S (count n)
-count {∅} _ = ⊥-elim impossible
-  where postulate impossible : ⊥
+count : ∀ {n} → {Γ : Context n} → (i : Fin n) → Γ ∋ lookup Γ i
+count {suc n} {Γ , _} FZ = Z
+count {suc n} {Γ , _} (FS i) = S (count i)
 
-#_ : ∀ {Γ} → (n : ℕ) → Γ ⊢ lookup Γ n
-# n = ` count n
+#_ : ∀ {n} → {Γ : Context n} → (i : Fin n) → Γ ⊢ lookup Γ i
+# i = ` count i
 
 _ : ∅ ⊢ (`ℕ ⇒ `ℕ) ⇒ `ℕ ⇒ `ℕ
 _ = ƛ ƛ (# 1 · (# 1 · # 0))
