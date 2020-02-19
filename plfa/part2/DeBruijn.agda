@@ -137,3 +137,32 @@ mul : ∀ {n} {Γ : Context n} → Γ ⊢ `ℕ ⇒ `ℕ ⇒ `ℕ
 mul = μ ƛ ƛ (case (# 1) `zero (plus · # 1 · (# 3 · # 0 · # 1)))
 
 -- Renaming
+ext :
+  ∀ {m n} {Γ : Context m} {Δ : Context n} →
+  (∀ {A} → Γ ∋ A → Δ ∋ A) →
+  (∀ {A B} → Γ , B ∋ A → Δ , B ∋ A)
+ext ρ Z = Z
+ext ρ (S x) = S (ρ x)
+
+rename :
+  ∀ {m n} {Γ : Context m} {Δ : Context n} →
+  (∀ {A} → Γ ∋ A → Δ ∋ A) →
+  (∀ {A} → Γ ⊢ A → Δ ⊢ A)
+rename ρ (` x) = ` (ρ x)
+rename ρ (ƛ N) = ƛ (rename (ext ρ) N)
+rename ρ (L · M) = (rename ρ L) · (rename ρ M)
+rename ρ `zero = `zero
+rename ρ (`suc M) = `suc (rename ρ M)
+rename ρ (case L M N) = case (rename ρ L) (rename ρ M) (rename (ext ρ) N)
+rename ρ (μ N) = μ (rename (ext ρ) N)
+
+M₀ : ∅ , `ℕ ⇒ `ℕ ⊢ `ℕ ⇒ `ℕ
+M₀ = ƛ (# 1 · (# 1 · # 0))
+
+M₁ : ∅ , `ℕ ⇒ `ℕ , `ℕ ⊢ `ℕ ⇒ `ℕ
+M₁ = ƛ (# 2 · (# 2 · # 0))
+
+_ : rename S_ M₀ ≡ M₁
+_ = refl
+
+-- Simultaneous substitution
