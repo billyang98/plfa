@@ -166,3 +166,23 @@ _ : rename S_ M₀ ≡ M₁
 _ = refl
 
 -- Simultaneous substitution
+exts :
+  ∀ {m n} {Γ : Context m} {Δ : Context n} →
+  (∀ {A} → Γ ∋ A → Δ ⊢ A) →
+  (∀ {A B} → Γ , B ∋ A → Δ , B ⊢ A)
+exts σ Z = ` Z
+exts σ (S x) = rename S_ (σ x)
+
+subst :
+  ∀ {m n} {Γ : Context m} {Δ : Context n} →
+  (∀ {A} → Γ ∋ A → Δ ⊢ A) →
+  (∀ {A} → Γ ⊢ A → Δ ⊢ A)
+subst σ (` k) = σ k
+subst σ (ƛ N) = ƛ (subst (exts σ) N)
+subst σ (L · M) = (subst σ L) · (subst σ M)
+subst σ `zero = `zero
+subst σ (`suc M) = `suc (subst σ M)
+subst σ (case L M N) = case (subst σ L) (subst σ M) (subst (exts σ) N)
+subst σ (μ N) = μ (subst (exts σ) N)
+
+-- Single substitution
