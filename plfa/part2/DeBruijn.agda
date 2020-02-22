@@ -186,3 +186,41 @@ subst σ (case L M N) = case (subst σ L) (subst σ M) (subst (exts σ) N)
 subst σ (μ N) = μ (subst (exts σ) N)
 
 -- Single substitution
+_[_] : ∀ {n A B} {Γ : Context n} → Γ , B ⊢ A → Γ ⊢ B → Γ ⊢ A
+_[_] {n} {A} {B} {Γ} N M = subst {suc n} {n} {Γ , B} {Γ} σ {A} N
+  where
+    σ : ∀ {A} → Γ , B ∋ A → Γ ⊢ A
+    σ Z = M
+    σ (S x) = ` x
+
+M₂ : ∅ , `ℕ ⇒ `ℕ ⊢ `ℕ ⇒ `ℕ
+M₂ = ƛ # 1 · (# 1 · # 0)
+
+M₃ : ∅ ⊢ `ℕ ⇒ `ℕ
+M₃ = ƛ `suc # 0
+
+M₄ : ∅ ⊢ `ℕ ⇒ `ℕ
+M₄ = ƛ (ƛ `suc # 0) · ((ƛ `suc # 0) · # 0)
+
+_ : M₂ [ M₃ ] ≡ M₄
+_ = refl
+
+M₅ : ∅ , `ℕ ⇒ `ℕ , `ℕ ⊢ (`ℕ ⇒ `ℕ) ⇒ `ℕ
+M₅ = ƛ # 0 · # 1
+
+M₆ : ∅ , `ℕ ⇒ `ℕ ⊢ `ℕ
+M₆ = # 0 · `zero
+
+M₇ : ∅ , `ℕ ⇒ `ℕ ⊢ (`ℕ ⇒ `ℕ) ⇒ `ℕ
+M₇ = ƛ (# 0 · (# 1 · `zero))
+
+_ : M₅ [ M₆ ] ≡ M₇
+_ = refl
+
+-- Values
+data Value : ∀ {n A} {Γ : Context n} → Γ ⊢ A → Set where
+  V-ƛ : ∀ {n A B} {Γ : Context n} {N : Γ , A ⊢ B} → Value (ƛ N)
+  V-zero : ∀ {n} {Γ : Context n} → Value (`zero {n} {Γ})
+  V-suc : ∀ {n} {Γ : Context n} → {V : Γ ⊢ `ℕ} → Value V → Value (`suc V)
+
+-- Reduction
