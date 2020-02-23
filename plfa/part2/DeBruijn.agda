@@ -224,3 +224,32 @@ data Value : ∀ {n A} {Γ : Context n} → Γ ⊢ A → Set where
   V-suc : ∀ {n} {Γ : Context n} → {V : Γ ⊢ `ℕ} → Value V → Value (`suc V)
 
 -- Reduction
+infix 2 _►_
+
+data _►_ {n} {Γ : Context n} : ∀ {A} → (Γ ⊢ A) → (Γ ⊢ A) → Set where
+  ξ-·₁ :
+    ∀ {A B} {L L′ : Γ ⊢ A ⇒ B} {M : Γ ⊢ A} →
+    L ► L′ → L · M ► L′ · M
+  ξ-·₂ :
+    ∀ {A B} {V : Γ ⊢ A ⇒ B} {M M′ : Γ ⊢ A} →
+    Value V → M ► M′ → V · M ► V · M′
+  β-ƛ :
+    ∀ {A B} {N : Γ , A ⊢ B} {W : Γ ⊢ A} →
+    Value W → (ƛ N) · W ► N [ W ]
+  ξ-suc :
+    {M M′ : Γ ⊢ `ℕ} →
+    M ► M′ → `suc M ► `suc M′
+  ξ-case :
+    ∀ {A} {L L′ : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A} →
+    L ► L′ → case L M N ► case L′ M N
+  β-zero :
+    ∀ {A} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A} →
+    case `zero M N ► M
+  β-suc :
+    ∀ {A} {V : Γ ⊢ `ℕ} {M : Γ ⊢ A} {N : Γ , `ℕ ⊢ A} →
+    Value V → case (`suc V) M N ► N [ V ]
+  β-μ :
+    ∀ {A} {N : Γ , A ⊢ A} →
+    μ N ► N [ μ N ]
+
+-- Reflexive and transitive closure
